@@ -294,10 +294,10 @@ int main() {
   for (unsigned int i=0;tokens[i].type!=TokEOT;i++) {
    free(tokens[i].sval);
   }
- } else {
-  KeyeAst* ast=parse(tokens);
-  free(ast);
  }
+ err=0;
+ KeyeAst* ast=parse(tokens);
  free(tokens);
+ free(ast);
  return err;
 }
