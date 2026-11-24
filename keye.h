@@ -18,7 +18,9 @@ typedef enum {
  TokEBlock,
 
  TokAdd,
+ TokInc,
  TokSub,
+ TokDec,
  TokMul,
  TokDiv,
  TokMod,
@@ -31,8 +33,6 @@ typedef enum {
  TokMore,
  TokMoreEqu,
 
- TokVar,
- TokConst,
  TokIf,
  TokElse,
  TokWhile,
@@ -43,24 +43,9 @@ typedef enum {
 
 typedef struct {
  TokType type;
- unsigned int ival;
+ int ival;
  char* sval;
 } KeyeTok;
-
-typedef enum {
- AstEOA=0,
- AstStr,
- AstNum,
- AstSCall,
- AstECall,
-} AstType;
-
-typedef struct ast {
- AstType type;
- unsigned int ival;
- char* sval;
- struct ast* asts;
-} KeyeAst;
 
 void ttprint(KeyeTok token) {
  switch (token.type) {
@@ -80,8 +65,6 @@ void ttprint(KeyeTok token) {
   case TokSBlock: printf("{"); break;
   case TokEBlock: printf("}"); break;
 
-  case TokVar: printf("Var"); break;
-  case TokConst: printf("Const"); break;
   case TokIf: printf("If"); break;
   case TokElse: printf("Else"); break;
   case TokWhile: printf("While"); break;
@@ -90,7 +73,9 @@ void ttprint(KeyeTok token) {
   case TokReturn: printf("Return"); break;
 
   case TokAdd: printf("+"); break;
+  case TokInc: printf("++"); break;
   case TokSub: printf("-"); break;
+  case TokDec: printf("--"); break;
   case TokMul: printf("*"); break;
   case TokDiv: printf("/"); break;
   case TokMod: printf("%%"); break;
@@ -114,20 +99,25 @@ unsigned int tokenlen(const KeyeTok* tokens) {
   if (tokens[i].type==TokEOT) return i;
 }
 
-unsigned int atoui(const char* a) {
- unsigned int ui=0;
- for (int i=0;a[i]!=0;i++) {
-  ui*=10;
-  ui+=a[i]-'0';
- }
- return ui;
-}
-
 char streq(const char* a,const char* b) {
  if (strlen(a)!=strlen(b)) return 0;
  for (int i=0;a[i]!=0;i++)
   if (a[i]!=b[i]) return 0;
  return 1;
 }
+
+typedef enum {
+ AstEOA=0,
+ AstStr,
+ AstNum,
+ AstCall,
+} AstType;
+
+typedef struct {
+ AstType type;
+ unsigned int ival;
+ char* sval;
+ struct KeyeAst* aval;
+} KeyeAst;
 
 #endif

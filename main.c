@@ -21,11 +21,7 @@ KeyeTok* lex(const char* code) {
     wi++;
    }
    word[wi]=0;
-   if (streq(word,"var")) {
-    res[ti]=(KeyeTok){.type=TokVar,.sval=0,.ival=0};
-   } else if (streq(word,"const")) {
-    res[ti]=(KeyeTok){.type=TokConst,.sval=0,.ival=0};
-   } else if (streq(word,"if")) {
+   if (streq(word,"if")) {
     res[ti]=(KeyeTok){.type=TokIf,.sval=0,.ival=0};
    } else if (streq(word,"else")) {
     res[ti]=(KeyeTok){.type=TokElse,.sval=0,.ival=0};
@@ -53,7 +49,7 @@ KeyeTok* lex(const char* code) {
     wi++;
    }
    word[wi]=0;
-   res[ti]=(KeyeTok){.type=TokNum,.sval=0,.ival=atoui(word)};
+   res[ti]=(KeyeTok){.type=TokNum,.sval=0,.ival=atoi(word)};
    ti++;
    if (ti>=cap) {
     cap*=2;
@@ -149,27 +145,39 @@ KeyeTok* lex(const char* code) {
      break;
     }
    } else if (code[i]=='+') {
-    res[ti]=(KeyeTok){.type=TokAdd,.sval=0,.ival=0};
+    if (i+1<len && code[i+1]=='+') {
+     i++;
+     res[ti]=(KeyeTok){.type=TokInc,.sval=0,.ival=0};
+    }
+    else res[ti]=(KeyeTok){.type=TokAdd,.sval=0,.ival=0};
     ti++;
     if (ti>=cap) {
      cap*=2;
      res=realloc(res,cap*sizeof(KeyeTok));
     }
    } else if (code[i]=='-') {
-    i++;
-    word[0]='0';
-    wi=1;
-    if (res[ti-1].type!=TokNum && res[ti-1].type!=TokEExpr && res[ti-1].type!=TokName) {
+    if (i+1<len && code[i+1]=='-') {
+     i++;
+     res[ti]=(KeyeTok){.type=TokDec,.sval=0,.ival=0};
+    } else if (i+1<len && isdigit(code[i+1])) {
+     i++;
+     word[0]='-';
+     wi=1;
      for (;i<len && isdigit(code[i]);i++) {
       word[wi]=code[i];
       wi++;
      }
+     word[wi]=0;
+     res[ti]=(KeyeTok){.type=TokNum,.sval=0,.ival=atoi(word)};
+     ti++;
+     if (ti>=cap) {
+      cap*=2;
+      res=realloc(res,cap*sizeof(KeyeTok));
+     }
+     wi=0;
+     word[wi]=0;
     }
-    word[wi]=0;
-    res[ti]=(KeyeTok){.type=TokSub,.sval=0,.ival=atoui(word)};
-    wi=0;
-    word[wi]=0;
-    i--;
+    else res[ti]=(KeyeTok){.type=TokSub,.sval=0,.ival=0};
     ti++;
     if (ti>=cap) {
      cap*=2;
@@ -268,14 +276,17 @@ KeyeTok* lex(const char* code) {
 }
 
 KeyeAst* parse(const KeyeTok* tokens) {
- KeyeAst* res=malloc(1*sizeof(KeyeAst));
+ unsigned int cap=8;
+ KeyeAst* res=malloc(cap*sizeof(KeyeAst));
+ unsigned int ri=0;
  unsigned int len=tokenlen(tokens);
  for (int i=0;i<len;i++) {
   ttprint(tokens[i]);
-  if (tokens[i].sval!=0)
-   printf("%s ",tokens[i].sval);
+  if (tokens[i].sval!=0) printf("%s ",tokens[i].sval);
   printf("%d\n",tokens[i].ival);
  }
+ res=realloc(res,(ri+1)*sizeof(KeyeAst));
+ res[ri]=(KeyeAst){.type=AstEOA,.sval=0,.ival=0,.aval=0};
  return res;
 }
 
