@@ -21,7 +21,9 @@ KeyeTok* lex(const char* code) {
     wi++;
    }
    word[wi]=0;
-   if (streq(word,"if")) {
+   if (streq(word,"let")) {
+    res[ti]=(KeyeTok){.type=TokLet,.sval=0,.ival=0};
+   } else if (streq(word,"if")) {
     res[ti]=(KeyeTok){.type=TokIf,.sval=0,.ival=0};
    } else if (streq(word,"else")) {
     res[ti]=(KeyeTok){.type=TokElse,.sval=0,.ival=0};
@@ -113,13 +115,6 @@ KeyeTok* lex(const char* code) {
     }
    } else if (code[i]=='}') {
     res[ti]=(KeyeTok){.type=TokEBlock,.sval=0,.ival=0};
-    ti++;
-    if (ti>=cap) {
-     cap*=2;
-     res=realloc(res,cap*sizeof(KeyeTok));
-    }
-   } else if (code[i]==',') {
-    res[ti]=(KeyeTok){.type=TokSep,.sval=0,.ival=0};
     ti++;
     if (ti>=cap) {
      cap*=2;
@@ -282,7 +277,10 @@ KeyeAst* parse(const KeyeTok* tokens) {
  unsigned int len=tokenlen(tokens);
  for (int i=0;i<len;i++) {
   ttprint(tokens[i]);
-  if (tokens[i].sval!=0) printf("%s ",tokens[i].sval);
+  if (tokens[i].sval!=0) {
+   printf("%s ",tokens[i].sval);
+   free(tokens[i].sval);
+  }
   printf("%d\n",tokens[i].ival);
  }
  res=realloc(res,(ri+1)*sizeof(KeyeAst));
@@ -305,6 +303,8 @@ int main() {
   for (unsigned int i=0;tokens[i].type!=TokEOT;i++) {
    free(tokens[i].sval);
   }
+  free(tokens);
+  return err;
  }
  err=0;
  KeyeAst* ast=parse(tokens);
